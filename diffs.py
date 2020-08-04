@@ -25,6 +25,11 @@ while True:
         first_frame = gray
         continue
 
+    cv2.rectangle(color_frame, (0, 0), (640, 360), (0, 255, 0), 1)
+    cv2.rectangle(color_frame, (641, 0), (1280, 360), (0, 255, 0), 1)
+    cv2.rectangle(color_frame, (0, 361), (640, 720), (0, 255, 0), 1)
+    cv2.rectangle(color_frame, (641, 361), (1280, 720), (0, 255, 0), 1)
+
     delta_frame = cv2.absdiff(first_frame, gray)
     # print(delta_frame[1])
     thresh_frame = cv2.threshold(delta_frame, 30, 255, cv2.THRESH_BINARY)[1]
