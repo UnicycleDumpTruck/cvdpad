@@ -1,13 +1,16 @@
 import cv2
 import pandas
 from datetime import datetime
+from time import sleep
+from resize import ResizeWithAspectRatio
 
 first_frame = None
 status_list = [None, None]
 time_stamp = []
 df = pandas.DataFrame(columns=["Start", "End"])
 
-video = cv2.VideoCapture(0)
+video = cv2.VideoCapture(2)
+sleep(2)
 
 while True:
     check, color_frame = video.read()
@@ -41,10 +44,12 @@ while True:
     if status_list[-1] == 0 and status_list[-2] == 1:
         time_stamp.append(datetime.now())
 
-    cv2.imshow("Gray Frame", gray)
-    cv2.imshow("Delta Frame", delta_frame)
-    cv2.imshow("Threshold Frame", thresh_frame)
-    cv2.imshow("Color Frame", color_frame)
+    cv2.imshow("Gray Frame", ResizeWithAspectRatio(gray, width=640))
+    cv2.imshow("Delta Frame", ResizeWithAspectRatio(
+        delta_frame, width=640))
+    cv2.imshow("Threshold Frame", ResizeWithAspectRatio(
+        thresh_frame, width=640))
+    cv2.imshow("Color Frame", ResizeWithAspectRatio(color_frame, width=640))
 
     key = cv2.waitKey(1)
     if key == ord('q'):
