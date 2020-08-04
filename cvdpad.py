@@ -3,13 +3,65 @@ import pandas
 from datetime import datetime
 from time import sleep
 from resize import ResizeWithAspectRatio
+import numpy as np
+
+# -------------
+
+# Setup SimpleBlobDetector parameters.
+params = cv2.SimpleBlobDetector_Params()
+
+# Change thresholds
+params.minThreshold = 10
+params.maxThreshold = 200
+
+
+# Filter by Area.
+params.filterByArea = False
+params.minArea = 1500
+
+# Filter by Circularity
+params.filterByCircularity = False
+params.minCircularity = 0.1
+
+# Filter by Convexity
+params.filterByConvexity = False
+params.minConvexity = 0.87
+
+# Filter by Inertia
+params.filterByInertia = False
+params.minInertiaRatio = 0.01
+
+# Create a detector with the parameters
+ver = (cv2.__version__).split('.')
+if int(ver[0]) < 3:
+    detector = cv2.SimpleBlobDetector(params)
+else:
+    detector = cv2.SimpleBlobDetector_create(params)
+
+
+# Detect blobs.
+##keypoints = detector.detect(im)
+
+# Draw detected blobs as red circles.
+# cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures
+# the size of the circle corresponds to the size of blob
+
+# im_with_keypoints = cv2.drawKeypoints(im, keypoints, np.array(
+#    []), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+# Show blobs
+#cv2.imshow("Keypoints", im_with_keypoints)
+# cv2.waitKey(0)
+
+
+# ---------------
 
 first_frame = None
 status_list = [None, None]
 time_stamp = []
 df = pandas.DataFrame(columns=["Start", "End"])
 
-video = cv2.VideoCapture(2)
+video = cv2.VideoCapture(0)
 sleep(2)
 
 while True:
@@ -44,18 +96,36 @@ while True:
     if status_list[-1] == 0 and status_list[-2] == 1:
         time_stamp.append(datetime.now())
 
-    cv2.imshow("Gray Frame", ResizeWithAspectRatio(gray, width=640))
-    cv2.imshow("Delta Frame", ResizeWithAspectRatio(
-        delta_frame, width=640))
-    cv2.imshow("Threshold Frame", ResizeWithAspectRatio(
-        thresh_frame, width=640))
-    cv2.imshow("Color Frame", ResizeWithAspectRatio(color_frame, width=640))
+    #cv2.imshow("Gray Frame", ResizeWithAspectRatio(gray, width=640))
+    # cv2.imshow("Delta Frame", ResizeWithAspectRatio(
+    #    delta_frame, width=640))
+    # cv2.imshow("Threshold Frame", ResizeWithAspectRatio(
+    #   thresh_frame, width=640))
+    #cv2.imshow("Color Frame", ResizeWithAspectRatio(color_frame, width=640))
 
     key = cv2.waitKey(1)
     if key == ord('q'):
         if status == 1:
             time_stamp.append(datetime.now())
         break
+
+    im = gray
+
+    # Detect blobs.
+    keypoints = detector.detect(im)
+
+    # Draw detected blobs as red circles.
+    # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures
+    # the size of the circle corresponds to the size of blob
+
+    im_with_keypoints = cv2.drawKeypoints(im, keypoints, np.array(
+        []), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+    # Show blobs
+    cv2.imshow("Keypoints", im_with_keypoints)
+    # cv2.waitKey(0)
+
+
 # while loop ends here
 
 print(status_list)
