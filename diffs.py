@@ -4,6 +4,7 @@ import cv2
 import pandas
 from resize import ResizeWithAspectRatio
 import numpy as np
+from button import button
 
 
 first_frame = None
@@ -14,7 +15,7 @@ df = pandas.DataFrame(columns=["Start", "End"])
 video = cv2.VideoCapture(0)
 sleep(2)
 
-up_button_rect = (214, 0, 214, 240)
+up_button_rect = button(214, 0, 214, 240, "w", "Up")
 left_button_rect = (0, 240, 214, 240)
 right_button_rect = (428, 240, 214, 240)
 down_button_rect = (214, 480, 214, 240)
