@@ -1,44 +1,14 @@
-import cv2
-import pandas
 from datetime import datetime
 from time import sleep
+import cv2
+import pandas
 from resize import ResizeWithAspectRatio
 import numpy as np
 
 
-# Setup SimpleBlobDetector parameters.
-params = cv2.SimpleBlobDetector_Params()
-
-# Change thresholds
-params.minThreshold = 10
-params.maxThreshold = 200
-
-# Filter by Area.
-params.filterByArea = False
-params.minArea = 1500
-
-# Filter by Circularity
-params.filterByCircularity = False
-params.minCircularity = 0.1
-
-# Filter by Convexity
-params.filterByConvexity = False
-params.minConvexity = 0.87
-
-# Filter by Inertia
-params.filterByInertia = False
-params.minInertiaRatio = 0.01
-
-# Create a blob detector with the parameters
-ver = (cv2.__version__).split(".")
-if int(ver[0]) < 3:
-    detector = cv2.SimpleBlobDetector(params)
-else:
-    detector = cv2.SimpleBlobDetector_create(params)
-
 first_frame = None
 status_list = [None, None]
-time_stamp = []
+time_stamp = [datetime]
 df = pandas.DataFrame(columns=["Start", "End"])
 
 video = cv2.VideoCapture(0)
@@ -56,6 +26,7 @@ while True:
         continue
 
     delta_frame = cv2.absdiff(first_frame, gray)
+    # print(delta_frame[1])
     thresh_frame = cv2.threshold(delta_frame, 30, 255, cv2.THRESH_BINARY)[1]
     thresh_frame = cv2.dilate(thresh_frame, None, iterations=3)
 
@@ -66,9 +37,26 @@ while True:
     for contour in cnts:
         if cv2.contourArea(contour) < 10000:
             continue
+        # print(contour)
         status = 1
         (x, y, w, h) = cv2.boundingRect(contour)
         cv2.rectangle(color_frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+        contour_center_x = x + int(w / 2)
+        contour_center_y = y + int(h / 2)
+
+        if contour_center_x <= 640 and contour_center_y <= 360:
+            # Upper Left
+            print("Upper left")
+        elif contour_center_x > 640 and contour_center_y <= 360:
+            # Upper Right
+            print("Upper Right")
+        elif contour_center_x <= 640 and contour_center_y > 360:
+            # Lower Left
+            print("Lower Left")
+        elif contour_center_x > 640 and contour_center_y > 360:
+            # Lower Right
+            print("Lower Right")
+
     # for loop ends here
 
     status_list.append(status)
@@ -78,31 +66,10 @@ while True:
     if status_list[-1] == 0 and status_list[-2] == 1:
         time_stamp.append(datetime.now())
 
-    # cv2.imshow("Gray Frame", ResizeWithAspectRatio(gray, width=640))
-    # cv2.imshow("Delta Frame", ResizeWithAspectRatio(
-    #    delta_frame, width=640))
-    # cv2.imshow("Threshold Frame", ResizeWithAspectRatio(
-    #   thresh_frame, width=640))
+    cv2.imshow("Gray Frame", ResizeWithAspectRatio(gray, width=640))
+    cv2.imshow("Delta Frame", ResizeWithAspectRatio(delta_frame, width=640))
+    cv2.imshow("Threshold Frame", ResizeWithAspectRatio(thresh_frame, width=640))
     cv2.imshow("Color Frame", ResizeWithAspectRatio(color_frame, width=640))
-
-    # Detect blobs.
-    im = gray
-    keypoints = detector.detect(im)
-
-    # Draw detected blobs as red circles.
-    # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures
-    # the size of the circle corresponds to the size of blob
-    im_with_keypoints = cv2.drawKeypoints(
-        im,
-        keypoints,
-        np.array([]),
-        (0, 0, 255),
-        cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS,
-    )
-
-    # Show blobs
-    # cv2.imshow("Keypoints", ResizeWithAspectRatio(im_with_keypoints, width=640))
-    # cv2.waitKey(0)
 
     # Wait for quit
     key = cv2.waitKey(1)
