@@ -14,6 +14,13 @@ df = pandas.DataFrame(columns=["Start", "End"])
 video = cv2.VideoCapture(0)
 sleep(2)
 
+up_button_rect = (214, 0, 214, 240)
+left_button_rect = (0, 240, 214, 240)
+right_button_rect = (428, 240, 214, 240)
+down_button_rect = (214, 480, 214, 240)
+a_button_rect = (1066, 480, 214, 240)
+b_button_rect = (1066, 0, 214, 240)
+
 
 while True:
     check, color_frame = video.read()
@@ -25,10 +32,12 @@ while True:
         first_frame = gray
         continue
 
-    cv2.rectangle(color_frame, (0, 0), (640, 360), (0, 255, 0), 1)
-    cv2.rectangle(color_frame, (641, 0), (1280, 360), (0, 255, 0), 1)
-    cv2.rectangle(color_frame, (0, 361), (640, 720), (0, 255, 0), 1)
-    cv2.rectangle(color_frame, (641, 361), (1280, 720), (0, 255, 0), 1)
+    cv2.rectangle(color_frame, (214, 0), (428, 240), (0, 255, 0), 4)  # up
+    cv2.rectangle(color_frame, (0, 240), (214, 480), (0, 255, 0), 4)  # left
+    cv2.rectangle(color_frame, (428, 240), (640, 480), (0, 255, 0), 4)  # right
+    cv2.rectangle(color_frame, (214, 480), (428, 720), (0, 255, 0), 4)  # down
+    cv2.rectangle(color_frame, (1066, 480), (1280, 720), (0, 255, 0), 4)  # b
+    cv2.rectangle(color_frame, (1066, 0), (1280, 240), (0, 255, 0), 4)  # a
 
     delta_frame = cv2.absdiff(first_frame, gray)
     # print(delta_frame[1])
