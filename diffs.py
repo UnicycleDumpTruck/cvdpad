@@ -4,7 +4,7 @@ import cv2
 import pandas
 from resize import ResizeWithAspectRatio
 import numpy as np
-from button import button
+from button import Button
 
 
 first_frame = None
@@ -15,13 +15,21 @@ df = pandas.DataFrame(columns=["Start", "End"])
 video = cv2.VideoCapture(0)
 sleep(2)
 
-up_button_rect = button(214, 0, 214, 240, "w", "Up")
-left_button_rect = (0, 240, 214, 240)
-right_button_rect = (428, 240, 214, 240)
-down_button_rect = (214, 480, 214, 240)
-a_button_rect = (1066, 480, 214, 240)
-b_button_rect = (1066, 0, 214, 240)
+up_button_rect = Button(214, 0, 214, 240, "w", "Up")
+left_button_rect = Button(0, 240, 214, 240, "a", "Left")
+right_button_rect = Button(428, 240, 214, 240, "d", "Right")
+down_button_rect = Button(214, 480, 214, 240, "s", "Down")
+a_button_rect = Button(1066, 480, 214, 240, "z", "A")
+b_button_rect = Button(1066, 0, 214, 240, "x", "B")
 
+buttons = [
+    up_button_rect,
+    left_button_rect,
+    right_button_rect,
+    down_button_rect,
+    a_button_rect,
+    b_button_rect,
+]
 
 while True:
     check, color_frame = video.read()
@@ -33,12 +41,17 @@ while True:
         first_frame = gray
         continue
 
-    cv2.rectangle(color_frame, (214, 0), (428, 240), (0, 255, 0), 4)  # up
-    cv2.rectangle(color_frame, (0, 240), (214, 480), (0, 255, 0), 4)  # left
-    cv2.rectangle(color_frame, (428, 240), (640, 480), (0, 255, 0), 4)  # right
-    cv2.rectangle(color_frame, (214, 480), (428, 720), (0, 255, 0), 4)  # down
-    cv2.rectangle(color_frame, (1066, 480), (1280, 720), (0, 255, 0), 4)  # b
-    cv2.rectangle(color_frame, (1066, 0), (1280, 240), (0, 255, 0), 4)  # a
+    for button in buttons:
+        cv2.rectangle(
+            color_frame, button.upper_left, button.lower_right, (0, 255, 0), 4
+        )
+
+    # cv2.rectangle(color_frame, (214, 0), (428, 240), (0, 255, 0), 4)  # up
+    # cv2.rectangle(color_frame, (0, 240), (214, 480), (0, 255, 0), 4)  # left
+    # cv2.rectangle(color_frame, (428, 240), (640, 480), (0, 255, 0), 4)  # right
+    # cv2.rectangle(color_frame, (214, 480), (428, 720), (0, 255, 0), 4)  # down
+    # cv2.rectangle(color_frame, (1066, 480), (1280, 720), (0, 255, 0), 4)  # b
+    # cv2.rectangle(color_frame, (1066, 0), (1280, 240), (0, 255, 0), 4)  # a
 
     delta_frame = cv2.absdiff(first_frame, gray)
     # print(delta_frame[1])
@@ -59,18 +72,10 @@ while True:
         contour_center_x = x + int(w / 2)
         contour_center_y = y + int(h / 2)
 
-        if contour_center_x <= 640 and contour_center_y <= 360:
-            # Upper Left
-            print("Upper left")
-        elif contour_center_x > 640 and contour_center_y <= 360:
-            # Upper Right
-            print("Upper Right")
-        elif contour_center_x <= 640 and contour_center_y > 360:
-            # Lower Left
-            print("Lower Left")
-        elif contour_center_x > 640 and contour_center_y > 360:
-            # Lower Right
-            print("Lower Right")
+        for button in buttons:
+            if button.containsPoint(contour_center_x, contour_center_y):
+                button.pressButton()
+                break
 
     # for loop ends here
 
