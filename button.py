@@ -1,4 +1,5 @@
-# from pyautogui import press
+from time import sleep
+from pyautogui import press, keyDown, keyUp
 
 
 class Button:
@@ -33,5 +34,6 @@ class Button:
         return False
 
     def pressButton(self):
-        # press(self.keypress)
+        press(self.keypress)
         print(f"{self.keypress} pressed")
+        sleep(0)
