@@ -1,22 +1,22 @@
 from time import sleep
-import cv2
+import cv2  # type: ignore
+
+# import numpy as np  # type: ignore
 
 from resize import ResizeWithAspectRatio
-import numpy as np
 from button import Button
 
 
 first_frame = None
-
 video = cv2.VideoCapture(0)
 sleep(2)
 
-up_button = Button(214, 0, 214, 240, "w", "Up")
-left_button = Button(0, 240, 214, 240, "a", "Left")
-right_button = Button(428, 240, 214, 240, "d", "Right")
-down_button = Button(214, 480, 214, 240, "s", "Down")
-a_button = Button(1066, 480, 214, 240, "z", "A")
-b_button = Button(1066, 0, 214, 240, "x", "B")
+up_button: Button = Button(214, 0, 214, 240, "w", "Up")
+left_button: Button = Button(0, 240, 214, 240, "a", "Left")
+right_button: Button = Button(428, 240, 214, 240, "d", "Right")
+down_button: Button = Button(214, 480, 214, 240, "s", "Down")
+a_button: Button = Button(1066, 480, 214, 240, "z", "A")
+b_button: Button = Button(1066, 0, 214, 240, "x", "B")
 
 buttons = [
     up_button,

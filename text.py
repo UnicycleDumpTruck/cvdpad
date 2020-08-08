@@ -1,4 +1,4 @@
-import cv2
+import cv2  # type: ignore
 
 
 def draw_label(img, text, pos, bg_color):

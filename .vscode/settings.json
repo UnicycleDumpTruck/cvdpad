@@ -1,4 +1,6 @@
 {
-    "python.pythonPath": "/usr/local/bin/python3.6",
-    "python.formatting.provider": "black"
+    "python.pythonPath": "/Users/jeff/.virtualenvs/RogueLike2020Env/bin/python",
+    "python.formatting.provider": "black",
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true
 }
