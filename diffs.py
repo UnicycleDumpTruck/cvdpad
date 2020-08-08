@@ -1,3 +1,6 @@
+"""Sends keyboard events when differences from initial frame
+detected in button area."""
+
 from time import sleep
 import cv2  # type: ignore
 
