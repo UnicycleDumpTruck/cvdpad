@@ -1,3 +1,5 @@
+""" Resizing function to allow windows to fit in screen"""
+
 import cv2
 
 

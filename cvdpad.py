@@ -1,9 +1,13 @@
-import cv2
-import pandas
+"""Blob detecter example tweaked"""
+
 from datetime import datetime
 from time import sleep
+
+import cv2  # type: ignore
+import numpy as np  # type: ignore
+import pandas  # type: ignore
+
 from resize import ResizeWithAspectRatio
-import numpy as np
 
 
 # Setup SimpleBlobDetector parameters.
