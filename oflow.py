@@ -1,9 +1,13 @@
-import cv2 as cv
+import cv2 as cv # type: ignore
 import numpy as np
 import matplotlib.pyplot as plt
 
 from scipy.stats import mode
 from argparse import ArgumentParser
+
+from pyautogui import keyDown, keyUp
+
+current_key_down = None
 
 if __name__ == '__main__':
     ap = ArgumentParser()
@@ -103,21 +107,44 @@ if __name__ == '__main__':
         loc = directions_map.mean(axis=0).argmax()
         if loc == 0:
             text = 'Moving down'
+            if current_key_down != 's':
+                if current_key_down:
+                    keyUp(current_key_down)
+                current_key_down = 's'
+                keyDown('s')
         elif loc == 1:
             text = 'Moving to the right'
+            if current_key_down != 'd':
+                if current_key_down:
+                    keyUp(current_key_down)
+                current_key_down = 'd'
+                keyDown('d')
         elif loc == 2:
             text = 'Moving up'
+            if current_key_down != 'w':
+                if current_key_down:
+                    keyUp(current_key_down)
+                current_key_down = 'w'
+                keyDown('w')
         elif loc == 3:
             text = 'Moving to the left'
+            if current_key_down != 'a':
+                if current_key_down:
+                    keyUp(current_key_down)
+                current_key_down = 'a'
+                keyDown('a')
         else:
-            text = 'WAITING'
+            text = ''
+            if current_key_down:
+                keyUp(current_key_down)
+                current_key_down = None
 
         hsv[:, :, 0] = ang_180
         hsv[:, :, 2] = cv.normalize(mag, None, 0, 255, cv.NORM_MINMAX)
         rgb = cv.cvtColor(hsv, cv.COLOR_HSV2BGR)
 
         frame = cv.flip(frame, 1)
-        cv.putText(frame, text, (30, 90), cv.FONT_HERSHEY_COMPLEX, frame.shape[1] / 500, (0, 0, 255), 2)
+        cv.putText(frame, text, (30, 90), cv.FONT_HERSHEY_SIMPLEX, frame.shape[1] / 500, (0, 0, 255), 2)
 
         k = cv.waitKey(1) & 0xff
         if k == ord('q'):
