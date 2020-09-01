@@ -32,6 +32,8 @@ def list_ports():
         dev_port += 1
     return available_ports, working_ports
 
-    if __name__ == "__main__":
-        for port in list_ports():
+
+if __name__ == "__main__":
+    for ls in list_ports():
+        for port in ls:
             print(port)

@@ -7,6 +7,8 @@ from argparse import ArgumentParser
 
 from pyautogui import keyDown, keyUp
 
+from resize import resizeWithAspectRatio
+
 current_key_down = None
 
 if __name__ == "__main__":
@@ -73,7 +75,7 @@ if __name__ == "__main__":
 
     directions_map = np.zeros([args["size"], 5])
 
-    cap = cv.VideoCapture(1)
+    cap = cv.VideoCapture(0)
     h = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
     w = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
 
@@ -86,7 +88,7 @@ if __name__ == "__main__":
     # if args['plot']:
     #     plt.ion()
 
-    frame_previous = cap.read()[1]
+    frame_previous = resizeWithAspectRatio(cap.read()[1], width=320)
     gray_previous = cv.cvtColor(frame_previous, cv.COLOR_BGR2GRAY)
     hsv = np.zeros_like(frame_previous)
     hsv[:, :, 1] = 255
@@ -105,7 +107,7 @@ if __name__ == "__main__":
         if not grabbed:
             break
 
-        gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+        gray = cv.cvtColor(resizeWithAspectRatio(frame, width=320), cv.COLOR_BGR2GRAY)
         # print(int(4/5*h), w, h) #[0:int(4/5*h), w:h]
 
         flow = cv.calcOpticalFlowFarneback(gray_previous, gray, None, **param)
@@ -157,28 +159,28 @@ if __name__ == "__main__":
 
         loc = directions_map.mean(axis=0).argmax()
         if loc == 0:
-            text = "Moving down"
+            text = "Down"
             if current_key_down != "s":
                 if current_key_down:
                     keyUp(current_key_down)
                 current_key_down = "s"
                 keyDown("s")
         elif loc == 1:
-            text = "Moving to the right"
+            text = "Right"
             if current_key_down != "d":
                 if current_key_down:
                     keyUp(current_key_down)
                 current_key_down = "d"
                 keyDown("d")
         elif loc == 2:
-            text = "Moving up"
+            text = "Up"
             if current_key_down != "w":
                 if current_key_down:
                     keyUp(current_key_down)
                 current_key_down = "w"
                 keyDown("w")
         elif loc == 3:
-            text = "Moving to the left"
+            text = "Left"
             if current_key_down != "a":
                 if current_key_down:
                     keyUp(current_key_down)
