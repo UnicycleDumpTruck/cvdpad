@@ -3,7 +3,7 @@
 import cv2
 
 
-def ResizeWithAspectRatio(image, width=None, height=None, inter=cv2.INTER_AREA):
+def resizeWithAspectRatio(image, width=None, height=None, inter=cv2.INTER_AREA):
     dim = None
     (h, w) = image.shape[:2]
 
