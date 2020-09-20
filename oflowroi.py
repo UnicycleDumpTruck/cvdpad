@@ -122,21 +122,33 @@ if __name__ == "__main__":
         move_sense = ang[mag > args["threshold"]]
         move_mode = mode(move_sense)[0]
 
-        if 10 < move_mode <= 100:
+        # if 10 < move_mode <= 100:  # was 10 to 100
+        # if 315 < move_mode or move_mode < 45:  # was 10 to 100
+        # if 240 < move_mode <= 315: #1
+        if 45 < move_mode <= 135:  # 3 was 45 to 135 down
             directions_map[-1, 0] = 1
             directions_map[-1, 1:] = 0
             directions_map = np.roll(directions_map, -1, axis=0)
-        elif 100 < move_mode <= 190:
+        # elif 100 < move_mode <= 190:  # was 100 to 190
+        # elif 45 < move_mode <= 135:  # was 100 to 190
+        # elif 315 < move_mode or move_mode < 45: #2
+        elif 135 < move_mode <= 225:  # 4 right
             directions_map[-1, 1] = 1
             directions_map[-1, :1] = 0
             directions_map[-1, 2:] = 0
             directions_map = np.roll(directions_map, -1, axis=0)
-        elif 190 < move_mode <= 280:
+        # elif 190 < move_mode <= 240:  # was 190 to 280
+        # elif 135 < move_mode <= 240:  # was 190 to 280
+        # elif 45 < move_mode <= 135:  # 3
+        elif 240 < move_mode <= 300:  # 1 up was 225 to 315
             directions_map[-1, 2] = 1
             directions_map[-1, :2] = 0
             directions_map[-1, 3:] = 0
             directions_map = np.roll(directions_map, -1, axis=0)
-        elif 280 < move_mode or move_mode < 10:
+        # elif 280 < move_mode or move_mode < 10:  # was 280 to 10
+        # elif 240 < move_mode <= 315:  # was 280 to 10
+        # elif 135 < move_mode <= 240:  # 4
+        elif 315 < move_mode or move_mode < 45:  # 2 Left
             directions_map[-1, 3] = 1
             directions_map[-1, :3] = 0
             directions_map[-1, 4:] = 0
@@ -160,12 +172,12 @@ if __name__ == "__main__":
         loc = directions_map.mean(axis=0).argmax()
         if loc == 0:
             text = "Down"
-            if current_key_down != "s":
-                if current_key_down:
-                    keyUp(current_key_down)
-                current_key_down = "s"
-                keyDown("s")
-        elif loc == 1:
+            # if current_key_down != "s":
+            #     if current_key_down:
+            #         keyUp(current_key_down)
+            #     current_key_down = "s"
+            #     keyDown("s")
+        if loc == 1:
             text = "Right"
             if current_key_down != "d":
                 if current_key_down:
@@ -191,7 +203,7 @@ if __name__ == "__main__":
             if current_key_down:
                 keyUp(current_key_down)
                 current_key_down = None
-
+        # text = str(move_mode)
         hsv[:, :, 0] = ang_180
         hsv[:, :, 2] = cv.normalize(mag, None, 0, 255, cv.NORM_MINMAX)
         # rgb = cv.cvtColor(hsv, cv.COLOR_HSV2BGR)
