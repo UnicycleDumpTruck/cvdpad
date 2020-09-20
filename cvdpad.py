@@ -52,7 +52,7 @@ if __name__ == "__main__":
     ap.add_argument(
         "-th",
         "--threshold",
-        default=5.0,
+        default=4.0,
         type=float,
         help="Threshold value for magnitude",
     )
@@ -102,21 +102,21 @@ if __name__ == "__main__":
         move_sense = ang[mag > args["threshold"]]
         move_mode = mode(move_sense)[0]
 
-        if 45 < move_mode <= 135:  # 3 was 45 to 135 down
+        if 45 < move_mode <= 135:  # down?
             directions_map[-1, 0] = 1
             directions_map[-1, 1:] = 0
             directions_map = np.roll(directions_map, -1, axis=0)
-        elif 135 < move_mode <= 225:  # 4 right
+        elif 135 < move_mode <= 225:  # right
             directions_map[-1, 1] = 1
             directions_map[-1, :1] = 0
             directions_map[-1, 2:] = 0
             directions_map = np.roll(directions_map, -1, axis=0)
-        elif 240 < move_mode <= 300:  # 1 up was 225 to 315
+        elif 250 < move_mode <= 290:  # up
             directions_map[-1, 2] = 1
             directions_map[-1, :2] = 0
             directions_map[-1, 3:] = 0
             directions_map = np.roll(directions_map, -1, axis=0)
-        elif 315 < move_mode or move_mode < 45:  # 2 Left
+        elif 315 < move_mode or move_mode < 45:  # left
             directions_map[-1, 3] = 1
             directions_map[-1, :3] = 0
             directions_map[-1, 4:] = 0
@@ -127,13 +127,13 @@ if __name__ == "__main__":
             directions_map = np.roll(directions_map, 1, axis=0)
 
         loc = directions_map.mean(axis=0).argmax()
-        if loc == 0:
-            text = "Down"
-            # if current_key_down != "s":
-            #     if current_key_down:
-            #         keyUp(current_key_down)
-            #     current_key_down = "s"
-            #     keyDown("s")
+        # if loc == 0:
+        #     text = "Down"
+        # if current_key_down != "s":
+        #     if current_key_down:
+        #         keyUp(current_key_down)
+        #     current_key_down = "s"
+        #     keyDown("s")
         if loc == 1:
             text = "Right"
             if current_key_down != "d":
