@@ -1,129 +1,187 @@
-"""Blob detecter example tweaked"""
-
-from datetime import datetime
-from time import sleep
-
-import cv2  # type: ignore
+import cv2 as cv  # type: ignore
 import numpy as np  # type: ignore
-import pandas  # type: ignore
 
-from resize import ResizeWithAspectRatio
+from scipy.stats import mode
+from argparse import ArgumentParser
 
+from pyautogui import keyDown, keyUp
 
-# Setup SimpleBlobDetector parameters.
-params = cv2.SimpleBlobDetector_Params()
+from resize import resizeWithAspectRatio
 
-# Change thresholds
-params.minThreshold = 10
-params.maxThreshold = 200
+current_key_down = None
 
-# Filter by Area.
-params.filterByArea = False
-params.minArea = 1500
-
-# Filter by Circularity
-params.filterByCircularity = False
-params.minCircularity = 0.1
-
-# Filter by Convexity
-params.filterByConvexity = False
-params.minConvexity = 0.87
-
-# Filter by Inertia
-params.filterByInertia = False
-params.minInertiaRatio = 0.01
-
-# Create a blob detector with the parameters
-ver = (cv2.__version__).split(".")
-if int(ver[0]) < 3:
-    detector = cv2.SimpleBlobDetector(params)
-else:
-    detector = cv2.SimpleBlobDetector_create(params)
-
-first_frame = None
-status_list = [None, None]
-time_stamp = []
-df = pandas.DataFrame(columns=["Start", "End"])
-
-video = cv2.VideoCapture(0)
-sleep(2)
-
-
-while True:
-    check, color_frame = video.read()
-    status = 0
-    gray = cv2.cvtColor(color_frame, cv2.COLOR_BGR2GRAY)
-    gray = cv2.GaussianBlur(gray, (21, 21), 0)
-
-    if first_frame is None:
-        first_frame = gray
-        continue
-
-    delta_frame = cv2.absdiff(first_frame, gray)
-    thresh_frame = cv2.threshold(delta_frame, 30, 255, cv2.THRESH_BINARY)[1]
-    thresh_frame = cv2.dilate(thresh_frame, None, iterations=3)
-
-    (cnts, _) = cv2.findContours(
-        thresh_frame.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+if __name__ == "__main__":
+    ap = ArgumentParser()
+    ap.add_argument(
+        "-rec", "--record", default=False, action="store_true", help="Record?"
+    )
+    ap.add_argument(
+        "-pscale",
+        "--pyr_scale",
+        default=0.5,
+        type=float,
+        help="Image scale (<1) to build pyramids for each image",
+    )
+    ap.add_argument(
+        "-l", "--levels", default=3, type=int, help="Number of pyramid layers"
+    )
+    ap.add_argument(
+        "-w", "--winsize", default=15, type=int, help="Averaging window size"
+    )
+    ap.add_argument(
+        "-i",
+        "--iterations",
+        default=3,
+        type=int,
+        help="Number of iterations the algorithm does at each pyramid level",
+    )
+    ap.add_argument(
+        "-pn",
+        "--poly_n",
+        default=5,
+        type=int,
+        help="Size of the pixel neighborhood used to find polynomial expansion in each pixel",
+    )
+    ap.add_argument(
+        "-psigma",
+        "--poly_sigma",
+        default=1.1,
+        type=float,
+        help="Standard deviation of the Gaussian that is used to smooth derivatives used as a basis for the polynomial expansion",
+    )
+    ap.add_argument(
+        "-th",
+        "--threshold",
+        default=5.0,
+        type=float,
+        help="Threshold value for magnitude",
+    )
+    ap.add_argument(
+        "-s",
+        "--size",
+        default=10,
+        type=int,
+        help="Size of accumulator for directions map",
     )
 
-    for contour in cnts:
-        if cv2.contourArea(contour) < 10000:
-            continue
-        status = 1
-        (x, y, w, h) = cv2.boundingRect(contour)
-        cv2.rectangle(color_frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
-    # for loop ends here
+    args = vars(ap.parse_args())
 
-    status_list.append(status)
+    directions_map = np.zeros([args["size"], 5])
 
-    if status_list[-1] == 1 and status_list[-2] == 0:
-        time_stamp.append(datetime.now())
-    if status_list[-1] == 0 and status_list[-2] == 1:
-        time_stamp.append(datetime.now())
+    cap = cv.VideoCapture(0)
+    h = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
+    w = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
 
-    # cv2.imshow("Gray Frame", ResizeWithAspectRatio(gray, width=640))
-    # cv2.imshow("Delta Frame", ResizeWithAspectRatio(
-    #    delta_frame, width=640))
-    # cv2.imshow("Threshold Frame", ResizeWithAspectRatio(
-    #   thresh_frame, width=640))
-    cv2.imshow("Color Frame", ResizeWithAspectRatio(color_frame, width=640))
+    frame_previous = resizeWithAspectRatio(cap.read()[1], width=320)
+    gray_previous = cv.cvtColor(frame_previous, cv.COLOR_BGR2GRAY)
+    hsv = np.zeros_like(frame_previous)
+    hsv[:, :, 1] = 255
+    param = {
+        "pyr_scale": args["pyr_scale"],
+        "levels": args["levels"],
+        "winsize": args["winsize"],
+        "iterations": args["iterations"],
+        "poly_n": args["poly_n"],
+        "poly_sigma": args["poly_sigma"],
+        "flags": cv.OPTFLOW_LK_GET_MIN_EIGENVALS,
+    }
 
-    # Detect blobs.
-    im = gray
-    keypoints = detector.detect(im)
+    while True:
+        grabbed, frame = cap.read()
+        if not grabbed:
+            break
 
-    # Draw detected blobs as red circles.
-    # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures
-    # the size of the circle corresponds to the size of blob
-    im_with_keypoints = cv2.drawKeypoints(
-        im,
-        keypoints,
-        np.array([]),
-        (0, 0, 255),
-        cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS,
-    )
+        gray = cv.cvtColor(resizeWithAspectRatio(frame, width=320), cv.COLOR_BGR2GRAY)
 
-    # Show blobs
-    # cv2.imshow("Keypoints", ResizeWithAspectRatio(im_with_keypoints, width=640))
-    # cv2.waitKey(0)
+        flow = cv.calcOpticalFlowFarneback(gray_previous, gray, None, **param)
 
-    # Wait for quit
-    key = cv2.waitKey(1)
-    if key == ord("q"):
-        if status == 1:
-            time_stamp.append(datetime.now())
-        break
+        mag, ang = cv.cartToPolar(flow[:, :, 0], flow[:, :, 1], angleInDegrees=True)
+        ang_180 = ang / 2
+        gray_previous = gray
 
-# while loop ends here
+        move_sense = ang[mag > args["threshold"]]
+        move_mode = mode(move_sense)[0]
 
-# print(status_list)
+        if 45 < move_mode <= 135:  # 3 was 45 to 135 down
+            directions_map[-1, 0] = 1
+            directions_map[-1, 1:] = 0
+            directions_map = np.roll(directions_map, -1, axis=0)
+        elif 135 < move_mode <= 225:  # 4 right
+            directions_map[-1, 1] = 1
+            directions_map[-1, :1] = 0
+            directions_map[-1, 2:] = 0
+            directions_map = np.roll(directions_map, -1, axis=0)
+        elif 240 < move_mode <= 300:  # 1 up was 225 to 315
+            directions_map[-1, 2] = 1
+            directions_map[-1, :2] = 0
+            directions_map[-1, 3:] = 0
+            directions_map = np.roll(directions_map, -1, axis=0)
+        elif 315 < move_mode or move_mode < 45:  # 2 Left
+            directions_map[-1, 3] = 1
+            directions_map[-1, :3] = 0
+            directions_map[-1, 4:] = 0
+            directions_map = np.roll(directions_map, -1, axis=0)
+        else:
+            directions_map[-1, -1] = 1
+            directions_map[-1, :-1] = 0
+            directions_map = np.roll(directions_map, 1, axis=0)
 
-for i in range(0, len(time_stamp) - 1, 2):
-    df = df.append(
-        {"Start": time_stamp[i], "End": time_stamp[i + 1]}, ignore_index=True
-    )
+        loc = directions_map.mean(axis=0).argmax()
+        if loc == 0:
+            text = "Down"
+            # if current_key_down != "s":
+            #     if current_key_down:
+            #         keyUp(current_key_down)
+            #     current_key_down = "s"
+            #     keyDown("s")
+        if loc == 1:
+            text = "Right"
+            if current_key_down != "d":
+                if current_key_down:
+                    keyUp(current_key_down)
+                current_key_down = "d"
+                keyDown("d")
+        elif loc == 2:
+            text = "Up"
+            if current_key_down != "w":
+                if current_key_down:
+                    keyUp(current_key_down)
+                current_key_down = "w"
+                keyDown("w")
+        elif loc == 3:
+            text = "Left"
+            if current_key_down != "a":
+                if current_key_down:
+                    keyUp(current_key_down)
+                current_key_down = "a"
+                keyDown("a")
+        else:
+            text = ""
+            if current_key_down:
+                keyUp(current_key_down)
+                current_key_down = None
+        # text = str(move_mode)
+        hsv[:, :, 0] = ang_180
+        hsv[:, :, 2] = cv.normalize(mag, None, 0, 255, cv.NORM_MINMAX)
 
-df.to_csv("All_Time_Stamp.csv")
-video.release()
-cv2.destroyAllWindows()
+        gray = cv.flip(gray, 1)
+        cv.putText(
+            gray,
+            text,
+            (30, 90),
+            cv.FONT_HERSHEY_SIMPLEX,
+            frame.shape[1] / 500,
+            (0, 0, 255),
+            2,
+        )
+
+        k = cv.waitKey(1) & 0xFF
+        if k == ord("q"):
+            break
+        cv.imshow("Gray", gray)
+        k = cv.waitKey(1) & 0xFF
+        if k == ord("q"):
+            break
+
+    cap.release()
+    cv.destroyAllWindows()
